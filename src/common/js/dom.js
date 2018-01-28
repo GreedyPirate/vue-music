@@ -37,7 +37,12 @@ export function getAttr(el, name, val) {
   }
 }
 
-let regularDom = document.createElement("div");
+/**
+ * 根据css属性，返回特定浏览器的css样式
+ * 如：prefixStyle('transform') ==> 'webkit'
+ * @type {CSSStyleDeclaration}
+ */
+let regularDom = document.createElement("div").style;
 let vendor = (() => {
   let prefixs = {
     webkit: 'webkitTransform',
@@ -47,15 +52,15 @@ let vendor = (() => {
     standard: 'transform'
   }
   for (let key in prefixs) {
-    if (regularDom.style[key] !== undefined) {
+    if (regularDom[prefixs[key]] !== undefined) {
       return key;
     }
   }
   return false;
-});
+})();
 
 export function prefixStyle(style) {
-  if(!vendor) return false;
+  if(vendor === false) return false;
   if(vendor === 'standard') return style;
 
   return vendor + style.charAt(0).toUpperCase() + style.substr(1);

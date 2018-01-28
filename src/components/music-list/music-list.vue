@@ -158,7 +158,7 @@
       position absolute
       top 0
       left 6px
-      z-index 50
+      z-index: 50
       .icon-back
         display inline-block
         padding 10px
