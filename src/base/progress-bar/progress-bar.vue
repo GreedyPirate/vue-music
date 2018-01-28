@@ -27,7 +27,10 @@
       }
     },
     created(){
-      this.touch = {};
+      // 给init初始化，否则watch里undefined，if一样通过
+      this.touch = {
+        init:false
+      };
     },
     methods:{
       touchstart(e) {

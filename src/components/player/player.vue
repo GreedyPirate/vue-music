@@ -34,8 +34,8 @@
             <span class="time time-r">{{formatTime(currentSong.duration)}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeModel">
+              <i :class="modelIcon"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i @click="prev" class="icon-prev"></i>
@@ -63,7 +63,9 @@
           <div class="desc"></div>
         </div>
         <div class="control">
-          <i @click.stop="togglePlay" :class="miniIcon"></i>
+          <progress-circle :radius="radius" :percent="barPrecent">
+            <i @click.stop="togglePlay" class="icon-mini" :class="miniIcon"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <div class="icon-playlist"></div>
@@ -80,6 +82,9 @@
   import animations from 'create-keyframe-animation'
   import {prefixStyle} from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
+  import ProgressCircle from 'base/progress-circle/progress-circle'
+  import {playModel} from 'common/js/config'
+  import {shuffle} from 'common/js/utils'
 
   const transform = prefixStyle('transform')
   const transitionDuration = prefixStyle('transitionDuration')
@@ -87,19 +92,28 @@
     data() {
       return {
         songReady: false,
-        currentTime: 0
+        currentTime: 0,
+        radius: 32
       }
     },
     components: {
-      ProgressBar
+      ProgressBar,
+      ProgressCircle
     },
     computed: {
-      ...mapGetters(['fullScreen', 'playList', 'playing', 'currentSong', 'currentIndex']),
+      ...mapGetters(['fullScreen', 'playList', 'playing', 'currentSong', 'currentIndex', 'model', 'sequenceList']),
       playIcon() {
         return this.playing ? 'icon-pause' : 'icon-play';
       },
       miniIcon() {
         return this.playing ? 'icon-pause-mini' : 'icon-play-mini';
+      },
+      modelIcon() {
+        for (let key in playModel) {
+          if (playModel[key] === this.model) {
+            return `icon-${key}`;
+          }
+        }
       },
       cdRoate() {
         return this.playing ? 'play' : 'play pause'
@@ -115,7 +129,9 @@
       ...mapMutations({
         setFullScreen: 'SET_FULLSCREEN',
         setPalying: 'SET_PLAYING',
-        setCurrentIndex: 'SET_CURRENTINDEX'
+        setCurrentIndex: 'SET_CURRENTINDEX',
+        setModel: 'SET_MODEL',
+        setPlayList: 'SET_PLAYLIST'
       }),
       closeFull() {
         // error: this.fullScreen=false
@@ -236,10 +252,10 @@
        * 子组件拖动进度条，重置audio的currentTime
        * @param newPrecent
        */
-      onProgressChange(newPrecent){
+      onProgressChange(newPrecent) {
         this.$refs.audio.currentTime = this.currentSong.duration * newPrecent;
         // 如果暂停了，拖动结束后播放
-        if(!this.playing){
+        if (!this.playing) {
           this.togglePlay();
         }
       },
@@ -248,6 +264,28 @@
         const minute = interval / 60 | 0;
         const second = this._padZero(interval % 60);
         return `${minute}:${second}`
+      },
+      changeModel() {
+        // 改变模式
+        let model = (this.model + 1) % 3;
+        this.setModel(model);
+        let list = [];
+        // 相应的改变歌曲
+        if(this.model === playModel.random){
+          debugger
+          list = shuffle(this.playList);
+        }else {
+          list = this.sequenceList;
+        }
+        this.setPlayList(list);
+        // 重置currentIndex
+        this.resetIndex();
+      },
+      resetIndex(){
+        let index = this.playList.findIndex((item) => {
+          return item.id = this.currentSong.id;
+        });
+        this.setCurrentIndex(index);
       },
       _padZero(num, n = 2) {
         let len = num.toString().length;
