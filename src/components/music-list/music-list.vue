@@ -8,7 +8,7 @@
       <div class="play-wrapper">
         <div class="play" ref="playBtn" v-show="songs.length > 0">
           <i class="icon-play"></i>
-          <span class="text">随机播放全部</span>
+          <span class="text" @click="startRandom">随机播放全部</span>
         </div>
       </div>
       <div class="filter" ref="filter"></div>
@@ -34,6 +34,8 @@
   import SongList from "base/song-list/song-list"
   import Loading from "base/loading/loading"
   import {mapActions} from 'vuex'
+  import {mapGetters} from 'vuex'
+  import {playModel} from 'common/js/config'
 
   const TOP_HEIGHT = 40;
 
@@ -70,7 +72,11 @@
       this.imgHeight = this.$refs.bgImg.clientHeight;
       this.minHeight = -this.imgHeight + TOP_HEIGHT;
     },
+    comupted:{
+      ...mapGetters(['model'])
+    },
     methods:{
+      ...mapActions(['selectPlay', 'randomPlay']),
       scroll(pos) {
         this.scrollY = pos.y;
       },
@@ -84,7 +90,12 @@
           index
         });
       },
-      ...mapActions(['selectPlay'])
+      startRandom() {
+        if(this.model === playModel.random) return;
+        this.randomPlay({
+          list:this.songs
+        });
+      }
     },
     components:{
       Scroll,
@@ -98,7 +109,6 @@
     },
     watch:{
       scrollY(newY) {
-//        console.log(newY + '----->' + this.minHeight)
         // 不能超过某一高度
         let translateY = Math.max(this.minHeight, newY);
         // 父元素没动，拿一个div当幕布，用黑色背景，动态增加高度
@@ -136,8 +146,6 @@
           this.$refs.playBtn.style.display = 'block';
         }
         imgStyle.zIndex = zIndex;
-
-
       }
     }
   }

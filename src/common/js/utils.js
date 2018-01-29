@@ -14,7 +14,7 @@ function getShuffle(max, min) {
  * @param data
  */
 export function shuffle(data) {
-  let arr = data.slice();
+  let arr = data.slice(); // 必须建立副本，不然操作了state里的数据
   if (arr.length === 1) return arr[1];
   for (let i = 0, len = arr.length; i < len; i++) {
     let j = getShuffle(0, i);
