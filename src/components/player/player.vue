@@ -73,7 +73,7 @@
       </div>
     </transition>
     <audio :src="currentSong.url" ref="audio" @canplay="onReady"
-           error="onError" @timeupdate="updateTime" @ended="onEnd"></audio>
+           :error="onError" @timeupdate="updateTime" @ended="onEnd"></audio>
   </div>
 </template>
 
@@ -86,8 +86,8 @@
   import {playModel} from 'common/js/config'
   import {shuffle} from 'common/js/utils'
 
-  const transform = prefixStyle('transform')
-  const transitionDuration = prefixStyle('transitionDuration')
+  const transform = prefixStyle('transform');
+  const transitionDuration = prefixStyle('transitionDuration');
   export default {
     data() {
       return {
@@ -128,7 +128,7 @@
     methods: {
       ...mapMutations({
         setFullScreen: 'SET_FULLSCREEN',
-        setPalying: 'SET_PLAYING',
+        setPlaying: 'SET_PLAYING',
         setCurrentIndex: 'SET_CURRENTINDEX',
         setModel: 'SET_MODEL',
         setPlayList: 'SET_PLAYLIST'
@@ -202,7 +202,7 @@
       togglePlay() {
         if (!this.songReady) return;
         // 取反
-        this.setPalying(!this.playing);
+        this.setPlaying(!this.playing);
       },
       next() {
         if (!this.songReady) return;
@@ -238,7 +238,16 @@
         this.songReady = true;
       },
       onEnd() {
-        this.next();
+        if(this.model === playModel.loop){
+          // 循环播放
+          this.loop()
+        }else{
+          this.next();
+        }
+      },
+      loop(){
+        this.$refs.audio.currentTime = 0;
+        this.$refs.audio.play();
       },
       /**
        * 原生事件，监听事件的改变
@@ -271,19 +280,21 @@
         this.setModel(model);
         let list = [];
         // 相应的改变歌曲
-        if(this.model === playModel.random){
-          debugger
-          list = shuffle(this.playList);
+        if(model === playModel.random){
+          list = shuffle(this.sequenceList);
         }else {
           list = this.sequenceList;
         }
         this.setPlayList(list);
         // 重置currentIndex
         this.resetIndex();
+        // 开始播放
+        this.setPlaying(true);
       },
       resetIndex(){
         let index = this.playList.findIndex((item) => {
-          return item.id = this.currentSong.id;
+          // 查找索引，返回的是布尔值，一开始写成一个=了
+          return item.id === this.currentSong.id;
         });
         this.setCurrentIndex(index);
       },
@@ -294,10 +305,16 @@
           len++;
         }
         return num;
+      },
+      show(list) {
+        for(let i=0, len=list.length; i<len; i++){
+          console.log(list[i])
+        }
       }
     },
     watch: {
-      currentSong(newVal) {
+      currentSong(newVal, oldVal) {
+        if(newVal.id === oldVal.id) return;
         // 加延时，歌曲还没加载过来
         this.$nextTick(() => {
           this.$refs.audio.play();

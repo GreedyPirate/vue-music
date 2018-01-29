@@ -11,9 +11,10 @@ function getShuffle(max, min) {
 
 /**
  * 打乱数组顺序
- * @param arr
+ * @param data
  */
-export function shuffle(arr) {
+export function shuffle(data) {
+  let arr = data.slice();
   if (arr.length === 1) return arr[1];
   for (let i = 0, len = arr.length; i < len; i++) {
     let j = getShuffle(0, i);

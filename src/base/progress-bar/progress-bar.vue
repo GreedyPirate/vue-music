@@ -1,5 +1,5 @@
 <template>
-  <div class="progress-bar" ref="progressBar" @click="moveTo($event)">
+  <div class="progress-bar" ref="progressBar" @click="moveTo">
     <div class="bar-inner">
       <div class="progress" ref="progress"></div>
       <div class="progress-btn-wrapper" ref="progressBtn">
@@ -50,15 +50,18 @@
         let offsetMove = Math.min(barWidth, newWidth);
         this._offsetChange(offsetMove);
       },
-      touchend(e) {
+      touchend() {
         // 记录拖动结束
         this.touch.init = false;
         this._tellParent();
       },
       // 点击事件
       moveTo(e) {
-        //获取progressBar的点击时的偏移量即可
-        this._offsetChange(e.offsetX);
+        /*//获取progressBar的点击时的偏移量即可
+        this._offsetChange(e.offsetX);*/
+        let react = this.$refs.progressBar.getBoundingClientRect();
+        let offset = e.pageX - react.left;
+        this._offsetChange(offset);
         this._tellParent();
       },
       // emit事件
@@ -78,7 +81,7 @@
       }
     },
     watch:{
-      precent(newVal,oldVal){
+      precent(newVal){
         // 在拖动结束后也要设置
         if(newVal > 0 && !this.touch.init){
           //1.获取总宽度，除去小球宽度
